@@ -1,5 +1,6 @@
 Jarvis 智能中控管理舱
 项目简介
+
 <img width="2560" height="1311" alt="image" src="https://github.com/user-attachments/assets/fb19ffcd-92e1-4855-b662-4c017a6ad250" />
 
 Jarvis 智能中控管理舱是一套面向制造业测试、FA分析（Failure Analysis）、品质监控以及生产数据决策的 AI Agent 平台。
@@ -45,6 +46,7 @@ AI分析
 AI Agent 中央控制层
 
 Jarvis 的核心是 AI Agent Workflow Controller。
+
 <img width="1344" height="410" alt="image" src="https://github.com/user-attachments/assets/2d8b31aa-dee7-4fcc-af06-0cf4d34a38eb" />
 
 作用：
@@ -62,6 +64,7 @@ Jarvis 的核心是 AI Agent Workflow Controller。
 分析本批次LED亮度异常原因
 
 Agent 自动完成：
+
 <img width="1290" height="130" alt="image" src="https://github.com/user-attachments/assets/2a7499e3-d655-4fd7-b46c-8e47df6b4d12" />
 
 读取数据库
@@ -106,6 +109,7 @@ AI辅助审核
 待处理任务
 
 显示：
+
 <img width="559" height="147" alt="image" src="https://github.com/user-attachments/assets/ca3ab969-892c-4996-923a-65b01787fd89" />
 
 异常案件
@@ -116,6 +120,7 @@ AI辅助审核
 已完成任务
 
 显示：
+
 <img width="536" height="148" alt="image" src="https://github.com/user-attachments/assets/85b785dc-da4d-4c86-a61f-90ab1bb0f030" />
 
 AI自动完成分析数量
@@ -160,6 +165,7 @@ FA建议
 多视角同步分析
 
 同时分析：
+
 <img width="1341" height="815" alt="image" src="https://github.com/user-attachments/assets/b7efaae3-6bdc-4cde-abd8-2096ed7c4ace" />
 
 CAM_REAR_01；
@@ -180,6 +186,7 @@ CAM_REAR_04；
 失效占比统计
 
 系统自动统计：
+
 <img width="682" height="577" alt="image" src="https://github.com/user-attachments/assets/444fb60e-f029-42de-87ca-c845d50ed4a0" />
 
 表面微尘
@@ -236,6 +243,7 @@ LED Issue Analysis
 功能定位
 
 LED缺陷自动分类系统。
+
 <img width="2062" height="757" alt="image" src="https://github.com/user-attachments/assets/ac2160be-bc3a-4691-bb3d-c0acf5c13093" />
 
 支持缺陷类型
@@ -346,6 +354,7 @@ Agent自动执行分析。
 功能定位
 
 追踪：
+
 <img width="2035" height="497" alt="image" src="https://github.com/user-attachments/assets/a8874b04-e1e8-49ad-88ef-222c248e5e41" />
 
 ECN
