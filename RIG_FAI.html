@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RIG (Retrieval-Interleaved Generation) 動態視覺化</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --panel-bg: #161b22;
+            --text-color: #c9d1d9;
+            --color-gen: #a371f7;
+            --color-ret: #388bfd;
+            --color-border: #30363d;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            color: #fff;
+            font-size: 2rem;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px var(--color-gen);
+        }
+
+        header p {
+            color: #8b949e;
+            margin-top: 5px;
+        }
+
+        /* 衝突點1修正：合併重複的 container 定義，嚴格鎖定格子 */
+        .container {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+            height: 75vh;
+            min-height: 0;
+            /* 防止 Grid 被子元素無限撐開 */
+        }
+
+        /* 左側面板：強制內部捲動（滾動條承載主體） */
+        .pipeline-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 20px;
+            height: 100%;
+            overflow-y: auto;
+            /* 核心：超出時在此處實時滾動 */
+            position: relative;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+            transition: border-color 0.3s;
+            scroll-behavior: smooth;
+        }
+
+        /* 右側面板 */
+        .db-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 20px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* 右側日誌區：強制內部捲動 */
+        .db-monitor {
+            flex: 1;
+            background: #090d13;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: monospace;
+            overflow-y: auto;
+            font-size: 0.9rem;
+            min-height: 0;
+            scroll-behavior: smooth;
+        }
+
+        .db-title {
+            font-size: 1.1rem;
+            color: var(--color-ret);
+            border-bottom: 1px solid var(--color-border);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* 科技大卡片：頂升流 */
+        .fai-main-card {
+            background: rgba(22, 27, 34, 0.6);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            animation: fadeInUp 0.4s forwards;
+            transition: border-color 0.3s;
+            display: flex;
+            flex-direction: column;
+            /* 內部元素垂直依序排列 */
+        }
+
+        .node {
+            margin-bottom: 12px;
+            padding: 12px;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .node.generation {
+            border-left: 4px solid var(--color-gen);
+            background: rgba(163, 113, 247, 0.03);
+        }
+
+        .node.generation .tag {
+            color: var(--color-gen);
+            font-weight: bold;
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+
+        .node.retrieval {
+            border-left: 4px solid var(--color-ret);
+            background: rgba(56, 139, 253, 0.08);
+            border-style: dashed;
+            border-width: 1px 1px 1px 4px;
+        }
+
+        .node.retrieval .tag {
+            color: var(--color-ret);
+            font-weight: bold;
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+
+        .query-box {
+            background: #090d13;
+            padding: 8px;
+            border-radius: 4px;
+            margin-top: 5px;
+            border: 1px solid #21262d;
+            color: #58a6ff;
+            font-family: monospace;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 2px;
+            height: 15px;
+            background: var(--color-gen);
+            animation: blink 0.6s infinite;
+            vertical-align: middle;
+            margin-left: 2px;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .log-line {
+            margin-bottom: 10px;
+            line-height: 1.4;
+            border-bottom: 1px solid #161b22;
+            padding-bottom: 8px;
+        }
+
+        .log-success {
+            color: #3fb950;
+        }
+
+        .log-info {
+            color: #8b949e;
+        }
+
+        .metrics-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 6px;
+        }
+
+        .metric-badge {
+            background: #21262d;
+            border: 1px solid var(--color-border);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+
+        .control-btn {
+            background: linear-gradient(135deg, var(--color-gen), var(--color-ret));
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-bottom: 20px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(56, 139, 253, 0.3);
+            transition: transform 0.2s;
+        }
+
+        .control-btn:hover {
+            transform: scale(1.02);
+        }
+
+        .control-btn:disabled {
+            background: #30363d;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .citation-tag {
+            background: rgba(56, 139, 253, 0.2);
+            color: #58a6ff;
+            border-bottom: 2px dashed var(--color-ret);
+            padding: 0 4px;
+            cursor: help;
+            position: relative;
+            display: inline-block;
+            border-radius: 4px;
+        }
+
+        .citation-popup {
+            display: none;
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1f242c;
+            border: 1px solid var(--color-ret);
+            padding: 10px;
+            border-radius: 6px;
+            width: 250px;
+            font-size: 0.8rem;
+            color: #ecf2f8;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+        }
+
+        .citation-tag:hover .citation-popup {
+            display: block;
+        }
+
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #090d13;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #30363d;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--color-ret);
+        }
+    </style>
+</head>
+
+<<body>
+    <header>
+        <h1>RIG (Retrieval-Interleaved Generation) 動態視覺化看板</h1>
+        <p>實時讀取 CSV 數據庫，演練大模型交互檢索根本原因分析（FA）流程</p>
+    </header>
+
+    <button class="control-btn" id="startBtn">開始 RIG 檢索生成演示</button>
+
+    <div class="container">
+        <!-- 衝突點2、3修正：建立結構完全正確、具備實時頂升與滾動條定位的左右雙面板 -->
+        <div class="pipeline-panel" id="pipelineScroll">
+            <!-- 所有的 FAI 卡片都會在此處由 JavaScript 即時用 prepend() 置頂插入 -->
+        </div>
+
+        <div class="db-panel">
+            <div class="db-title">
+                <span>Vector DB & Web Search 實時監視器</span>
+                <span style="font-size: 0.8rem; color: #8b949e;">Status: Ready</span>
+            </div>
+            <div class="db-monitor" id="monitor">
+                <div class="log-line log-info">> 系統初始化完成。等待工作流建立...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 精準鎖定帶有滾動條的唯一元素，絕無命名衝突
+        const pipelineScroll = document.getElementById('pipelineScroll');
+        const monitor = document.getElementById('monitor');
+        const startBtn = document.getElementById('startBtn');
+
+        let ws = null;
+        let currentFaiBox = null;
+        let currentContentSpan = null;
+
+        startBtn.addEventListener('click', () => {
+            startBtn.disabled = true;
+            pipelineScroll.innerHTML = '';
+            monitor.innerHTML = `<div class="log-line log-info">> [System] 正在建立 WebSocket 通道...</div>`;
+
+            currentFaiBox = null;
+            currentContentSpan = null;
+
+            ws = new WebSocket("ws://localhost:8000/ws/rig");
+
+            ws.onopen = () => {
+                logDatabase("網路通道已建立。成功加載 CSV 本地工廠數據集，啟動排查...", "success");
+                ws.send(JSON.stringify({ action: "start" }));
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+
+                // 訊號一：新 FAI 項目啟動，大卡片置頂
+                if (data.type === 'start_new_fai') {
+                    removeCurrentCursor();
+
+                    currentFaiBox = document.createElement('div');
+                    currentFaiBox.className = 'fai-main-card';
+                    pipelineScroll.prepend(currentFaiBox);
+                    createNewGenerationInnerBox();
+                    pipelineScroll.scrollTop = 0;
+                    monitor.prepend(line); // 置頂
+                    monitor.scrollTop = 0; // 鎖定滾動條最上方
+                }
+                // 處理流式打字
+                else if (data.type === 'gen_token') {
+                    if (currentContentSpan) {
+                        currentContentSpan.innerHTML += data.token;
+                        pipelineScroll.scrollTop = 0;
+                    }
+                }
+                else if (data.type === 'ret_trigger') {
+                    removeCurrentCursor();
+                    createRetrievalNode(data.query, data.reason);
+                }
+                else if (data.type === 'db_response') {
+                    injectDatabaseLog(data);
+                    createNewGenerationInnerBox();
+                }
+                else if (data.type === 'status' && data.value === 'done') {
+                    logDatabase("所有 FAI 品質異常項目分析與交互檢索順利結束！", "success");
+                    removeCurrentCursor();
+                    ws.close();
+                }
+            };
+
+            ws.onerror = () => { logDatabase("連線異常，請檢查 main.py 是否啟動。", "info"); startBtn.disabled = false; };
+            ws.onclose = () => { logDatabase("通道已關閉。", "info"); startBtn.disabled = false; };
+        });
+
+        function createNewGenerationInnerBox() {
+            if (!currentFaiBox) return;
+            const genBlock = document.createElement('div');
+            genBlock.className = 'node generation';
+            genBlock.innerHTML = `
+                <div class="tag">✦ Generation (LLM 實時分析)</div> 
+                <span class="content"></span><span class="cursor"></span>
+            `;
+            currentFaiBox.prepend(genBlock);
+            currentContentSpan = genBlock.querySelector('.content');
+            pipelineScroll.scrollTop = 0;
+        }
+
+        function createRetrievalNode(query, reason) {
+            if (!currentFaiBox) return;
+            const node = document.createElement('div');
+            node.className = 'node retrieval';
+            node.innerHTML = `
+                <div class="tag">🔍 Retrieval Trigger (主動掛起並檢索)</div> 
+                <div style="font-size:0.85rem; color:#8b949e; margin-bottom:4px;"><strong>思考動機:</strong> ${reason}</div> 
+                <div class="query-box"><strong>檢索表達式:</strong> <code>${query}</code></div>
+            `;
+
+            currentFaiBox.prepend(node);
+
+            currentFaiBox.style.borderColor = 'var(--color-ret)';
+            setTimeout(() => { if (currentFaiBox) currentFaiBox.style.borderColor = 'var(--color-border)'; }, 400);
+
+            pipelineScroll.scrollTop = 0;
+            logDatabase(`[思考點] 發現知識邊界，正發起 HNSW 近似最近鄰檢索...`, 'info');
+        }
+
+        function removeCurrentCursor() {
+            if (currentContentSpan) {
+                const cursor = currentContentSpan.parentNode.querySelector('.cursor');
+                if (cursor) cursor.remove();
+                currentContentSpan = null;
+            }
+        }
+
+        // 右側日誌：最新的命中指標永遠空降置頂
+        function injectDatabaseLog(step) {
+            const line = document.createElement('div');
+            line.className = 'log-line log-success';
+            line.innerHTML = `
+                 <b>[${step.fai_id} 檢索命中]</b> ${ step.result }</div >
+                    <div class="metrics-row">
+                        <span class="metric-badge" style="color: #58a6ff;">餘弦相似度: ${step.score}</span>
+                        <span class="metric-badge" style="color: #3fb950;">檢索延時: ${step.latency}</span>
+                    </div>
+            `;
+            monitor.prepend(line); // 置頂
+            monitor.scrollTop = 0; // 鎖定滾動條最上方
+        }
+
+        function logDatabase(text, status) {
+            const line = document.createElement('div');
+            // 修正：補上 className 的反引號 `
+            line.className = `log-line ${status === 'success' ? 'log-success' : 'log-info'}`;
+            // 修正：補上 innerHTML 的反引號 `
+            line.innerHTML = `> ${status === 'success' ? '⚡ ' : ''}${text}`;
+
+            monitor.prepend(line);
+            monitor.scrollTop = 0;
+        }
+    </script>
+    </body>
+
+</html>
