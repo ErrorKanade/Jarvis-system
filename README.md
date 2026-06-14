@@ -88,6 +88,7 @@ Agent 自动完成：
 
 FA分析任务
 当前待分析失效案件
+
 <img width="569" height="148" alt="image" src="https://github.com/user-attachments/assets/0f759e29-2add-4ba4-a79a-8e5e7ad2fee8" />
 
 帮助管理层了解：
@@ -98,6 +99,7 @@ AI分析负载
 表单签核任务
 
 显示：
+
 <img width="543" height="154" alt="image" src="https://github.com/user-attachments/assets/8d034547-6cb2-4c06-b903-405b6d675ff9" />
 
 待审批项目
