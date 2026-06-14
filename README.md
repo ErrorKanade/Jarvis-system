@@ -85,6 +85,7 @@ Agent 自动完成：
 
 FA分析任务
 当前待分析失效案件
+<img width="569" height="148" alt="image" src="https://github.com/user-attachments/assets/0f759e29-2add-4ba4-a79a-8e5e7ad2fee8" />
 
 帮助管理层了解：
 
@@ -94,6 +95,7 @@ AI分析负载
 表单签核任务
 
 显示：
+<img width="543" height="154" alt="image" src="https://github.com/user-attachments/assets/8d034547-6cb2-4c06-b903-405b6d675ff9" />
 
 待审批项目
 
@@ -104,6 +106,7 @@ AI辅助审核
 待处理任务
 
 显示：
+<img width="559" height="147" alt="image" src="https://github.com/user-attachments/assets/ca3ab969-892c-4996-923a-65b01787fd89" />
 
 异常案件
 待确认项目
@@ -113,6 +116,7 @@ AI辅助审核
 已完成任务
 
 显示：
+<img width="536" height="148" alt="image" src="https://github.com/user-attachments/assets/85b785dc-da4d-4c86-a61f-90ab1bb0f030" />
 
 AI自动完成分析数量
 
@@ -156,6 +160,7 @@ FA建议
 多视角同步分析
 
 同时分析：
+<img width="1341" height="815" alt="image" src="https://github.com/user-attachments/assets/b7efaae3-6bdc-4cde-abd8-2096ed7c4ace" />
 
 CAM_REAR_01；
 CAM_REAR_02；
@@ -175,6 +180,7 @@ CAM_REAR_04；
 失效占比统计
 
 系统自动统计：
+<img width="682" height="577" alt="image" src="https://github.com/user-attachments/assets/444fb60e-f029-42de-87ca-c845d50ed4a0" />
 
 表面微尘
 内部刮痕
@@ -230,6 +236,7 @@ LED Issue Analysis
 功能定位
 
 LED缺陷自动分类系统。
+<img width="2062" height="757" alt="image" src="https://github.com/user-attachments/assets/ac2160be-bc3a-4691-bb3d-c0acf5c13093" />
 
 支持缺陷类型
 PASS
@@ -339,6 +346,7 @@ Agent自动执行分析。
 功能定位
 
 追踪：
+<img width="2035" height="497" alt="image" src="https://github.com/user-attachments/assets/a8874b04-e1e8-49ad-88ef-222c248e5e41" />
 
 ECN
 工程变更
