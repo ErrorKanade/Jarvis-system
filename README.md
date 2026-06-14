@@ -1,6 +1,6 @@
 Jarvis 智能中控管理舱
 项目简介
-<img width="2560" height="1432" alt="image" src="https://github.com/user-attachments/assets/8407750a-c1dc-4eb0-9fcf-aec0483579c7" />
+<img width="2560" height="1311" alt="image" src="https://github.com/user-attachments/assets/fb19ffcd-92e1-4855-b662-4c017a6ad250" />
 
 Jarvis 智能中控管理舱是一套面向制造业测试、FA分析（Failure Analysis）、品质监控以及生产数据决策的 AI Agent 平台。
 
