@@ -49,7 +49,6 @@ def load_rig_script_from_csv(file_path="fai_issues.csv"):
             if not fa_steps:
                 fa_steps = ["發起通用根因庫檢索排查。"]
 
-            # ✨ 核心修正：將每個 FAI 包裝成獨立的「任務塊」
             fai_task = {
                 "fai_id": fai_id,
                 "feature": feature,
@@ -75,14 +74,10 @@ def load_rig_script_from_csv(file_path="fai_issues.csv"):
 async def websocket_rig_endpoint(websocket: WebSocket):
     await websocket.accept()
     try:
-        # 接收請求
         await websocket.receive_text()
-
-        # 讀取 CSV
         fai_tasks = load_rig_script_from_csv("fai_issues.csv")
 
         for task in fai_tasks:
-            # 1. 📢 訊號一：通知前端「為這個 FAI 開啟全新的大框」
             await websocket.send_json({
                 "type": "start_new_fai",
                 "fai_id": task["fai_id"],
@@ -90,17 +85,14 @@ async def websocket_rig_endpoint(websocket: WebSocket):
             })
             await asyncio.sleep(0.3)
 
-            # 2. 📝 流式推送開頭分析文字
             intro_text = f"【系統正在分析 {task['fai_id']} ({task['feature']})】。檢測到異常分類為： {task['issue_cat']} 。"
             for char in intro_text:
                 await websocket.send_json({"type": "gen_token", "token": char})
                 await asyncio.sleep(0.005)  # 高速打字
 
-            # 3. 🔄 循環執行內部的「檢索」與「右側監控日誌推送」
             for step in task["steps"]:
                 await asyncio.sleep(0.5)
 
-                # 📢 訊號二：左側大框內彈出藍色檢索框
                 await websocket.send_json({
                     "type": "ret_trigger",
                     "query": step["query"],
@@ -109,7 +101,6 @@ async def websocket_rig_endpoint(websocket: WebSocket):
 
                 await asyncio.sleep(0.8)  # 模擬檢索中
 
-                # 📢 訊號三：右側實時監視器「同步跳出實時分析指標」！
                 await websocket.send_json({
                     "type": "db_response",
                     "fai_id": task["fai_id"],
@@ -120,7 +111,6 @@ async def websocket_rig_endpoint(websocket: WebSocket):
 
                 await asyncio.sleep(0.5)
 
-            # 4. 📝 流式推送結尾結論文字
             conclusion_text = f" <span class='citation-tag'>{task['fai_id']} 數據鏈注入完成<span class='citation-popup'><b>Insight 數據庫回傳：</b>已完成 {task['fai_id']} 的所有量測值對比與 Breakdown 繪圖分析。</span></span> 數據流已更新，建議團隊優先依據右側召回日誌的集中性結果進行產線排查。<br/>"
 
             idx = 0
@@ -129,7 +119,6 @@ async def websocket_rig_endpoint(websocket: WebSocket):
                 if conclusion_text[idx] == '<':
                     close_idx = conclusion_text.find('>', idx)
                     if close_idx != -1:
-                        # 將完整標籤（如 <span>）打包成單一 Token
                         conclusion_tokens.append(
                             conclusion_text[idx:close_idx + 1])
                         idx = close_idx + 1
@@ -140,12 +129,10 @@ async def websocket_rig_endpoint(websocket: WebSocket):
             for token in conclusion_tokens:
                 await websocket.send_json({"type": "gen_token", "token": token})
                 if token.startswith('<'):
-                    await asyncio.sleep(0)  # 標籤瞬間渲染
+                    await asyncio.sleep(0) 
                 else:
-                    await asyncio.sleep(0.005)  # 文字保持打字機速度
-            await asyncio.sleep(0.8)  # 每個 FAI 項目分析完後稍作停頓
-
-        # 任務結束
+                    await asyncio.sleep(0.005) 
+            await asyncio.sleep(0.8)  
         await websocket.send_json({"type": "status", "value": "done"})
 
     except WebSocketDisconnect:
